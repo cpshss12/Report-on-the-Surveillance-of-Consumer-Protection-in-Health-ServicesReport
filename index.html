@@ -69,7 +69,7 @@
       .card-header-custom { padding: 15px 20px; border-bottom: 1px solid #f1f1f1; font-weight: 600; color: var(--secondary-color); }
       .card-red-alert { border-left: 5px solid #ff7675; background-color: #fff0f0; }
 
-      /* Carousel Settings */
+      /* --- Carousel Style (ปรับปรุงใหม่) --- */
       .carousel-container {
           width: 100%;
           max-width: 600px;
@@ -77,14 +77,33 @@
           overflow: hidden;
           box-shadow: 0 8px 20px rgba(0,0,0,0.1);
           margin-bottom: 25px;
-          margin-top: 20px; /* เพิ่มระยะห่างด้านบน */
-          background-color: #fff;
+          margin-top: 20px;
+          background-color: #fff; /* พื้นหลังขาว */
           border: 4px solid white;
+          position: relative;
+      }
+      .carousel-item {
+          height: 220px; /* กำหนดความสูงคงที่ ไม่กินพื้นที่ */
+          background-color: #f8f9fa;
+          cursor: pointer; /* เมาส์เป็นรูปมือ */
+          position: relative;
       }
       .carousel-item img {
           width: 100%;
-          height: auto; 
-          object-fit: contain; 
+          height: 100%;
+          object-fit: contain; /* แสดงภาพครบถ้วน */
+      }
+      /* ไอคอนแว่นขยายที่มุมขวาบนของสไลด์ */
+      .zoom-hint {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          background: rgba(0,0,0,0.5);
+          color: white;
+          padding: 5px 10px;
+          border-radius: 20px;
+          font-size: 0.7rem;
+          pointer-events: none;
       }
 
       /* Navigation Pills */
@@ -127,14 +146,14 @@
       <div class="d-flex align-items-center mb-4">
         <img src="https://img5.pic.in.th/file/secure-sv1/messageImage_1767330415287.jpg" alt="Logo" class="landing-logo me-3">
         <div class="text-start">
-            <h6 class="fw-bold mb-0" style="color: var(--secondary-color);">กลุ่มคุ้มครองผู้บริโภคฯ</h6>
-            <h4 class="fw-bold mb-0" style="color: var(--primary-color);">ระบบรายงานสุขภาพ</h4>
+            <h6 class="fw-bold mb-0" style="color: var(--secondary-color);">กลุ่มคุ้มครองผู้บริโภคด้านระบบบริการสุขภาพ</h6>
+            <h4 class="fw-bold mb-0" style="color: var(--primary-color);">ระบบรายงานเฝ้าระวังคุ้มครองผู้บริโภคด้านระบบบริการสุขภาพ</h4>
         </div>
       </div>
 
       <div class="w-100 px-3" style="max-width: 400px;">
         <a href="https://hosp.hss.moph.go.th/" target="_blank" class="btn btn-external text-decoration-none">
-             <i class="fas fa-certificate me-2 text-warning"></i> ตรวจมาตรฐานสถานพยาบาลเอกชน
+             <i class="fas fa-certificate me-2 text-warning"></i> ตรวจสอบสถานพยาบาลเอกชน
         </a>
 
         <div class="card custom-card p-4 w-100">
@@ -155,14 +174,17 @@
           <button type="button" data-bs-target="#newsCarousel" data-bs-slide-to="2"></button>
         </div>
         <div class="carousel-inner">
-          <div class="carousel-item active" data-bs-interval="4000">
+          <div class="carousel-item active" data-bs-interval="4000" onclick="viewImage(this.querySelector('img').src)">
             <img src="https://img5.pic.in.th/file/secure-sv1/1.--4f623cc568584939.jpg" class="d-block w-100" alt="News 1">
+            <span class="zoom-hint"><i class="fas fa-search-plus"></i> กดเพื่อขยาย</span>
           </div>
-          <div class="carousel-item" data-bs-interval="4000">
+          <div class="carousel-item" data-bs-interval="4000" onclick="viewImage(this.querySelector('img').src)">
             <img src="https://img5.pic.in.th/file/secure-sv1/2.---.-2568.jpg" class="d-block w-100" alt="News 2">
+            <span class="zoom-hint"><i class="fas fa-search-plus"></i> กดเพื่อขยาย</span>
           </div>
-          <div class="carousel-item" data-bs-interval="4000">
+          <div class="carousel-item" data-bs-interval="4000" onclick="viewImage(this.querySelector('img').src)">
             <img src="https://img2.pic.in.th/3.--.jpg" class="d-block w-100" alt="News 3">
+            <span class="zoom-hint"><i class="fas fa-search-plus"></i> กดเพื่อขยาย</span>
           </div>
         </div>
         <button class="carousel-control-prev" type="button" data-bs-target="#newsCarousel" data-bs-slide="prev">
@@ -218,7 +240,7 @@
                   <h5 class="card-header-custom mb-3"><i class="fas fa-clipboard-list me-2"></i>แบบฟอร์มรายงาน</h5>
                   <form id="form-report" onsubmit="submitForm(event)">
                     <div class="mb-3">
-                      <label class="form-label text-secondary small">ชื่อสถานบริการ</label>
+                      <label class="form-label text-secondary small">ชื่อสถานบริการสุขภาพ</label>
                       <input type="text" class="form-control rounded-pill" name="facilityName" required list="facilityList">
                       <datalist id="facilityList"></datalist>
                     </div>
@@ -293,6 +315,17 @@
       <div class="fw-bold text-primary">นางสาวภาวดี ภู่ภักดีพันธ์</div>
     </div>
 
+    <div class="modal fade" id="imageModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background: transparent; border: none;">
+          <div class="modal-body p-0 text-center position-relative">
+             <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-2 bg-dark rounded-circle p-2" data-bs-dismiss="modal" style="opacity:0.8;"></button>
+             <img src="" id="fullImage" class="img-fluid rounded shadow-lg" style="max-height: 90vh;">
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="modal fade" id="loginModal" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 20px; border: none;">
@@ -322,7 +355,6 @@
                     <p class="mb-2"><strong><i class="fas fa-hospital me-2 text-muted"></i></strong> <span id="modal-facility"></span></p>
                     <p class="mb-2"><strong><i class="fas fa-user me-2 text-muted"></i></strong> <span id="modal-reporter"></span></p>
                     <p class="mb-2"><strong><i class="fas fa-phone me-2 text-muted"></i></strong> <a href="#" id="modal-phone-link" class="text-decoration-none"><span id="modal-phone"></span></a></p>
-                    
                     <p class="mb-3"><a href="#" id="modal-map" target="_blank" class="btn btn-sm btn-outline-info rounded-pill"><i class="fas fa-map-marked-alt me-1"></i> ดูแผนที่</a></p>
                 </div>
                 <div class="col-md-6">
@@ -421,6 +453,12 @@
         if(tabId.startsWith('tab-admin')) loadAdminData();
       }
 
+      // ฟังก์ชันดูรูปขนาดเต็ม
+      function viewImage(src) {
+          document.getElementById('fullImage').src = src;
+          new bootstrap.Modal(document.getElementById('imageModal')).show();
+      }
+
       function logout() { localStorage.removeItem('adminSession'); location.reload(); }
 
       function loadUserData() {
@@ -450,7 +488,6 @@
         e.preventDefault();
         var form = document.getElementById('form-report');
         
-        // บันทึกชื่อและเบอร์โทรลง LocalStorage
         localStorage.setItem('reporterName', form.reporterName.value);
         localStorage.setItem('reporterPhone', form.reporterPhone.value);
 
@@ -462,7 +499,7 @@
           locationUrl: form.locationUrl.value,
           reportDetails: form.reportDetails.value,
           reporterName: form.reporterName.value,
-          phone: form.reporterPhone.value // ส่งเบอร์โทรไปด้วย
+          phone: form.reporterPhone.value
         });
         if(res && res.status === 'success') { alert("สำเร็จ รหัส: " + res.id); form.reset(); }
       }
@@ -550,7 +587,6 @@
          document.getElementById('modal-facility').innerText = item.facility;
          document.getElementById('modal-detail').innerText = item.details;
          document.getElementById('modal-reporter').innerText = item.reporter;
-         // ใส่เบอร์โทรใน modal
          document.getElementById('modal-phone').innerText = item.phone || '-';
          document.getElementById('modal-phone-link').href = item.phone ? 'tel:'+item.phone : '#';
 
