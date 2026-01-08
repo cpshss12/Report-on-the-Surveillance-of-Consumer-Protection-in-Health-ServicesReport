@@ -69,23 +69,22 @@
       .card-header-custom { padding: 15px 20px; border-bottom: 1px solid #f1f1f1; font-weight: 600; color: var(--secondary-color); }
       .card-red-alert { border-left: 5px solid #ff7675; background-color: #fff0f0; }
 
-      /* --- แก้ไข CSS Carousel เพื่อให้รูปไม่โดนตัด --- */
+      /* Carousel Settings */
       .carousel-container {
           width: 100%;
-          max-width: 600px; /* ขยายความกว้างกรอบขึ้นเล็กน้อย */
+          max-width: 600px;
           border-radius: 20px;
           overflow: hidden;
           box-shadow: 0 8px 20px rgba(0,0,0,0.1);
           margin-bottom: 25px;
-          background-color: #fff; /* ใส่สีพื้นหลังขาวเผื่อรูปไม่เต็ม */
+          margin-top: 20px; /* เพิ่มระยะห่างด้านบน */
+          background-color: #fff;
           border: 4px solid white;
       }
-
       .carousel-item img {
           width: 100%;
-          height: auto; /* เปลี่ยนจาก 250px เป็น auto เพื่อยืดความสูงตามจริง */
-          min-height: 200px; /* กันไม่ให้เล็กเกินไป */
-          object-fit: contain; /* สำคัญ! คำสั่งนี้จะทำให้โชว์ภาพครบทุกส่วน */
+          height: auto; 
+          object-fit: contain; 
       }
 
       /* Navigation Pills */
@@ -129,7 +128,23 @@
         <img src="https://img5.pic.in.th/file/secure-sv1/messageImage_1767330415287.jpg" alt="Logo" class="landing-logo me-3">
         <div class="text-start">
             <h6 class="fw-bold mb-0" style="color: var(--secondary-color);">กลุ่มคุ้มครองผู้บริโภคฯ</h6>
-            <h4 class="fw-bold mb-0" style="color: var(--primary-color);">รายงานเฝ้าระวังคุ้มครองผู้บริโภคด้านระบบบริการสุขภาพ</h4>
+            <h4 class="fw-bold mb-0" style="color: var(--primary-color);">ระบบรายงานสุขภาพ</h4>
+        </div>
+      </div>
+
+      <div class="w-100 px-3" style="max-width: 400px;">
+        <a href="https://hosp.hss.moph.go.th/" target="_blank" class="btn btn-external text-decoration-none">
+             <i class="fas fa-certificate me-2 text-warning"></i> ตรวจมาตรฐานสถานพยาบาลเอกชน
+        </a>
+
+        <div class="card custom-card p-4 w-100">
+          <p class="text-muted small mb-3">เข้าสู่เมนูระบบรายงาน</p>
+          <button class="btn btn-medical btn-lg w-100 mb-3" onclick="showPage('page-report')">
+            <i class="fas fa-edit me-2"></i> ประชาชน/อสม. (แจ้งเรื่อง)
+          </button>
+          <button class="btn btn-outline-medical btn-lg w-100" onclick="checkAuthAndShow()">
+            <i class="fas fa-user-shield me-2"></i> เจ้าหน้าที่ (เข้าสู่ระบบ)
+          </button>
         </div>
       </div>
 
@@ -158,23 +173,7 @@
         </button>
       </div>
       
-      <div class="w-100 px-3" style="max-width: 400px;">
-        <a href="https://hosp.hss.moph.go.th/" target="_blank" class="btn btn-external text-decoration-none">
-             <i class="fas fa-certificate me-2 text-warning"></i> ตรวจมาตรฐานสถานพยาบาลเอกชน
-        </a>
-
-        <div class="card custom-card p-4 w-100">
-          <p class="text-muted small mb-3">เข้าสู่เมนูระบบรายงาน</p>
-          <button class="btn btn-medical btn-lg w-100 mb-3" onclick="showPage('page-report')">
-            <i class="fas fa-edit me-2"></i> ประชาชน/อสม. (แจ้งเรื่อง)
-          </button>
-          <button class="btn btn-outline-medical btn-lg w-100" onclick="checkAuthAndShow()">
-            <i class="fas fa-user-shield me-2"></i> เจ้าหน้าที่ (เข้าสู่ระบบ)
-          </button>
-        </div>
-      </div>
-      
-      <div class="mt-4 text-muted small" style="font-size: 0.7rem;">
+      <div class="mt-2 text-muted small" style="font-size: 0.7rem;">
         ผู้จัดทำ: นางสาวภาวดี ภู่ภักดีพันธ์<br>นักวิชาการสาธารณสุขปฏิบัติการ
       </div>
     </div>
@@ -219,7 +218,7 @@
                   <h5 class="card-header-custom mb-3"><i class="fas fa-clipboard-list me-2"></i>แบบฟอร์มรายงาน</h5>
                   <form id="form-report" onsubmit="submitForm(event)">
                     <div class="mb-3">
-                      <label class="form-label text-secondary small">ชื่อสถานบริการ</label>
+                      <label class="form-label text-secondary small">ชื่อสถานบริการสุขภาพ</label>
                       <input type="text" class="form-control rounded-pill" name="facilityName" required list="facilityList">
                       <datalist id="facilityList"></datalist>
                     </div>
@@ -290,7 +289,7 @@
     </div>
 
     <div class="footer">
-      <div>© 2026 กลุ่มคุ้มครองผู้บริโภคสถานบริการ</div>
+      <div>© 2026 กลุ่มคุ้มครองผู้บริโภคด้านระบบบริการสุขภาพ</div>
       <div class="fw-bold text-primary">นางสาวภาวดี ภู่ภักดีพันธ์</div>
     </div>
 
