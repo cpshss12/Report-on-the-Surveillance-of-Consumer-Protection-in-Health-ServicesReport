@@ -72,18 +72,20 @@
       /* --- แก้ไข CSS Carousel เพื่อให้รูปไม่โดนตัด --- */
       .carousel-container {
           width: 100%;
-          max-width: 600px;
+          max-width: 600px; /* ขยายความกว้างกรอบขึ้นเล็กน้อย */
           border-radius: 20px;
           overflow: hidden;
           box-shadow: 0 8px 20px rgba(0,0,0,0.1);
           margin-bottom: 25px;
-          background-color: #fff;
+          background-color: #fff; /* ใส่สีพื้นหลังขาวเผื่อรูปไม่เต็ม */
           border: 4px solid white;
       }
+
       .carousel-item img {
           width: 100%;
-          height: auto; /* ให้ความสูงปรับตามอัตโนมัติ */
-          object-fit: contain; /* โชว์รูปให้ครบ ไม่ตัด */
+          height: auto; /* เปลี่ยนจาก 250px เป็น auto เพื่อยืดความสูงตามจริง */
+          min-height: 200px; /* กันไม่ให้เล็กเกินไป */
+          object-fit: contain; /* สำคัญ! คำสั่งนี้จะทำให้โชว์ภาพครบทุกส่วน */
       }
 
       /* Navigation Pills */
