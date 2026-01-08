@@ -1,5 +1,5 @@
 {
-  "name": "รายงานเฝ้าระวังสุขภาพ",
+  "name": "รายงานเฝ้าระวังคุ้มครองผู้บริโภคด้านระบบบริการสุขภาพ",
   "short_name": "Health Report",
   "start_url": ".",
   "display": "standalone",
@@ -18,4 +18,5 @@
       "type": "image/png"
     }
   ]
+
 }
