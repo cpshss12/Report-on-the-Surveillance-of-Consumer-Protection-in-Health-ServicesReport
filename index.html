@@ -1,7 +1,232 @@
-<div id="app-container" class="d-none" style="padding-top: 10px;">
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>รายงานเฝ้าระวังคุ้มครองผู้บริโภคด้านระบบบริการสุขภาพ</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00B4DB">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="logo.png">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <style>
+      :root {
+        --primary-color: #00B4DB; 
+        --secondary-color: #0083B0; 
+        --accent-color: #00d2d3;
+        --bg-color: #F5F7FA; 
+        --text-color: #2d3436;
+        --card-bg: #ffffff;
+      }
+      
+      body {
+        font-family: 'Prompt', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        padding-bottom: 70px;
+        overscroll-behavior-y: none;
+      }
+
+      /* Navbar */
+      .navbar {
+        background-color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        padding: 10px 0;
+      }
+      .navbar-brand img {
+        height: 45px; 
+        margin-right: 10px;
+        border-radius: 50%;
+      }
+      .brand-text { font-size: 0.9rem; font-weight: 600; color: var(--secondary-color); line-height: 1.2; }
+      .brand-subtext { font-size: 0.7rem; color: #636e72; font-weight: 400; }
+
+      /* Buttons */
+      .btn-medical {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white; border: none; border-radius: 50px; padding: 10px 25px; font-weight: 500;
+        box-shadow: 0 4px 6px rgba(0, 131, 176, 0.2); transition: all 0.3s ease;
+      }
+      .btn-medical:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0, 131, 176, 0.3); color: white; }
+      .btn-outline-medical { border: 2px solid var(--primary-color); color: var(--primary-color); border-radius: 50px; background: white; }
+      
+      .btn-external {
+        background: #fff; border: 2px solid #FFC107; color: #d39e00; border-radius: 15px;
+        font-weight: 600; padding: 12px; width: 100%; display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 10px rgba(255, 193, 7, 0.15); margin-bottom: 15px;
+      }
+      .btn-external:hover { background: #FFC107; color: white; }
+
+      /* Cards */
+      .custom-card { border: none; border-radius: 20px; background: var(--card-bg); box-shadow: 0 10px 20px rgba(0,0,0,0.05); margin-bottom: 20px; }
+      .card-header-custom { padding: 15px 20px; border-bottom: 1px solid #f1f1f1; font-weight: 600; color: var(--secondary-color); }
+      .card-red-alert { border-left: 5px solid #ff7675; background-color: #fff0f0; }
+
+      /* Carousel Style */
+      .carousel-container {
+          width: 100%;
+          max-width: 600px;
+          border-radius: 20px;
+          overflow: hidden;
+          box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+          margin-bottom: 25px;
+          margin-top: 20px;
+          background-color: #fff;
+          border: 4px solid white;
+          position: relative;
+      }
+      .carousel-item {
+          height: 220px;
+          background-color: #f8f9fa;
+          cursor: pointer;
+          position: relative;
+      }
+      .carousel-item img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+      }
+      .zoom-hint {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          background: rgba(0,0,0,0.5);
+          color: white;
+          padding: 5px 10px;
+          border-radius: 20px;
+          font-size: 0.7rem;
+          pointer-events: none;
+      }
+
+      /* Navigation Pills */
+      .nav-pills .nav-link { color: #636e72; border-radius: 50px; padding: 8px 15px; margin: 0 2px; font-size: 0.9rem; font-weight: 500; white-space: nowrap; cursor: pointer;}
+      .nav-pills .nav-link.active { background-color: var(--primary-color); color: white; box-shadow: 0 4px 10px rgba(0, 180, 219, 0.3); }
+      .nav-scroll-container { overflow-x: auto; white-space: nowrap; padding-bottom: 5px; -webkit-overflow-scrolling: touch; }
+      .nav-scroll-container::-webkit-scrollbar { display: none; }
+
+      /* Footer */
+      .footer { position: fixed; bottom: 0; width: 100%; background-color: #fff; color: #636e72; text-align: center; padding: 10px 0; font-size: 0.75rem; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 1000; }
+
+      /* Landing Page */
+      .landing-logo { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 10px; border: 3px solid white; }
+
+      /* Loading */
+      #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 9999; display: none; justify-content: center; align-items: center; }
+      
+      /* Install Prompt */
+      #install-prompt { display: none; position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: white; padding: 10px 20px; border-radius: 50px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 2000; width: 90%; max-width: 400px; align-items: center; justify-content: space-between; }
+
+      /* --- CSS สำหรับ Print Report --- */
+      @media print {
+        body * { visibility: hidden; }
+        #tab-admin-dash, #tab-admin-dash * { visibility: visible; }
+        #tab-admin-dash { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; background-color: white; }
+        .d-print-none, .navbar, .footer, .btn, .card-header-custom, .nav-scroll-container, .dash-section:not(#dash-report) { display: none !important; }
+        .custom-card { box-shadow: none !important; border: none !important; margin: 0 !important; }
+        
+        .report-header { margin-bottom: 20px; }
+        .report-table th { background-color: #f0f0f0 !important; color: black !important; -webkit-print-color-adjust: exact; }
+        .report-table th, .report-table td { font-size: 10pt; padding: 5px; border: 1px solid #000 !important; vertical-align: middle; }
+        .report-footer { display: flex !important; margin-top: 50px; page-break-inside: avoid; }
+      }
+    </style>
+</head>
+<body>
+
+    <script>
+        // *** ตรวจสอบ URL Web App ของคุณที่นี่ ***
+        const API_URL = "https://script.google.com/macros/s/AKfycbwau8nMoqNlLba_TVaYYM9BdmZcmeeC0_i3xOfd2GqiOx2CXvAm4e6_6Ngioxutdv9_/exec"; 
+    </script>
+
+    <div id="loading">
+      <div class="spinner-border text-info" role="status"></div>
+    </div>
+    
+    <div id="install-prompt">
+        <span><i class="fas fa-download me-2"></i> ติดตั้งแอปลงมือถือ</span>
+        <button class="btn btn-sm btn-primary rounded-pill" onclick="installApp()">ติดตั้ง</button>
+    </div>
+
+    <div id="page-landing" class="container min-vh-100 d-flex flex-column justify-content-center align-items-center text-center py-5">
+      
+      <div class="d-flex align-items-center mb-4">
+        <img src="https://img5.pic.in.th/file/secure-sv1/messageImage_1767330415287.jpg" alt="Logo" class="landing-logo me-3">
+        <div class="text-start">
+            <h4 class="fw-bold mb-0" style="color: var(--secondary-color);">ระบบรายงานเฝ้าระวังการคุ้มครองผู้บริโภคด้านระบบบริการสุขภาพ</h4>
+            <h5 class="fw-bold mb-0" style="color: var(--primary-color);">กลุ่มคุ้มครองผู้บริโภคด้านระบบบริการสุขภาพ</h5>
+            <p class="fw-bold mb-0" style="color: var(--primary-color);">ศูนย์สนับสนุนบริการสุขภาพที่ 12</p>
+        </div>
+      </div>
+
+      <div class="w-100 px-3" style="max-width: 400px;">
+        <a href="https://hosp.hss.moph.go.th/" target="_blank" class="btn btn-external text-decoration-none">
+             <i class="fas fa-certificate me-2 text-warning"></i> ตรวจสอบสถานพยาบาลเอกชน
+        </a>
+
+        <div class="card custom-card p-4 w-100">
+          <p class="text-muted small mb-3">เข้าสู่เมนูระบบรายงาน</p>
+          <button class="btn btn-medical btn-lg w-100 mb-3" onclick="showPage('page-report')">
+            <i class="fas fa-edit me-2"></i> แจ้งเรื่อง
+          </button>
+          <button class="btn btn-outline-medical btn-lg w-100" onclick="checkAuthAndShow()">
+            <i class="fas fa-user-shield me-2"></i> เจ้าหน้าที่ (เข้าสู่ระบบ)
+          </button>
+        </div>
+      </div>
+
+      <div id="newsCarousel" class="carousel slide carousel-container" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+          <button type="button" data-bs-target="#newsCarousel" data-bs-slide-to="0" class="active"></button>
+          <button type="button" data-bs-target="#newsCarousel" data-bs-slide-to="1"></button>
+          <button type="button" data-bs-target="#newsCarousel" data-bs-slide-to="2"></button>
+        </div>
+        <div class="carousel-inner">
+          <div class="carousel-item active" data-bs-interval="4000" onclick="viewImage(this.querySelector('img').src)">
+            <img src="https://img5.pic.in.th/file/secure-sv1/1.--4f623cc568584939.jpg" class="d-block w-100" alt="News 1">
+            <span class="zoom-hint"><i class="fas fa-search-plus"></i> กดเพื่อขยาย</span>
+          </div>
+          <div class="carousel-item" data-bs-interval="4000" onclick="viewImage(this.querySelector('img').src)">
+            <img src="https://img5.pic.in.th/file/secure-sv1/2.---.-2568.jpg" class="d-block w-100" alt="News 2">
+            <span class="zoom-hint"><i class="fas fa-search-plus"></i> กดเพื่อขยาย</span>
+          </div>
+          <div class="carousel-item" data-bs-interval="4000" onclick="viewImage(this.querySelector('img').src)">
+            <img src="https://img2.pic.in.th/3.--.jpg" class="d-block w-100" alt="News 3">
+            <span class="zoom-hint"><i class="fas fa-search-plus"></i> กดเพื่อขยาย</span>
+          </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#newsCarousel" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#newsCarousel" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        </button>
+      </div>
+      
+      <div class="mt-2 text-muted small" style="font-size: 0.7rem;">
+        พัฒนาโดย: นางสาวภาวดี ภู่ภักดีพันธ์<br>นักวิชาการสาธารณสุขปฏิบัติการ
+      </div>
+    </div>
+
+    <div id="app-container" class="d-none" style="padding-top: 10px;">
       
       <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container-fluid">
+          
+          <button class="btn btn-sm btn-light rounded-circle shadow-sm me-2" onclick="goBack()">
+             <i class="fas fa-chevron-left text-secondary"></i>
+          </button>
+
           <a class="navbar-brand d-flex align-items-center" href="#" onclick="location.reload()">
             <img src="https://img5.pic.in.th/file/secure-sv1/messageImage_1767330415287.jpg" alt="Logo">
             <div class="d-flex flex-column">
@@ -9,7 +234,8 @@
               <span class="brand-subtext">ระบบเฝ้าระวังและรายงาน</span>
             </div>
           </a>
-          <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="logout()">
+          
+          <button class="btn btn-sm btn-outline-secondary rounded-pill ms-auto" onclick="logout()">
             <i class="fas fa-sign-out-alt"></i>
           </button>
         </div>
@@ -61,6 +287,7 @@
                         <label class="form-label text-secondary small">เบอร์โทรศัพท์ติดต่อ</label>
                         <input type="tel" class="form-control rounded-pill" id="reporterPhone" name="reporterPhone" placeholder="0xxxxxxxxx" required>
                     </div>
+
                     <button type="submit" class="btn btn-medical w-100 py-2">ยืนยันส่งข้อมูล</button>
                   </form>
                 </div>
@@ -98,6 +325,7 @@
           </div>
 
           <div id="tab-admin-dash" class="tab-pane fade">
+             
              <div class="d-flex justify-content-center mb-4 d-print-none">
                 <div class="btn-group shadow-sm rounded-pill" role="group">
                     <button type="button" class="btn btn-outline-primary active" onclick="switchDash('dash-chart', this)">📊 กราฟสรุป</button>
@@ -153,6 +381,7 @@
                              <h6 class="text-muted">กลุ่มงานการแพทย์แผนไทยและการแพทย์ทางเลือก โรงพยาบาลสะเดา</h6>
                              <p class="small">ข้อมูล ณ วันที่: <span id="printDate"></span></p>
                          </div>
+
                          <table class="table table-bordered border-dark report-table w-100">
                              <thead class="table-light text-center">
                                  <tr>
@@ -166,6 +395,7 @@
                              </thead>
                              <tbody id="reportBody"></tbody>
                          </table>
+
                          <div class="row mt-5 report-footer" style="display:none;">
                              <div class="col-6 text-center"><br>............................................<br>ผู้จัดทำรายงาน</div>
                              <div class="col-6 text-center"><br>............................................<br>หัวหน้ากลุ่มงานฯ</div>
@@ -178,3 +408,436 @@
         </div>
       </div>
     </div>
+
+    <div class="footer">
+      <div>© 2026 กลุ่มคุ้มครองผู้บริโภคด้านระบบบริการสุขภาพ</div>
+      <div class="fw-bold text-primary">ศูนย์สนับสนุนบริการสุขภาพที่ 12</div>
+    </div>
+
+    <div class="modal fade" id="imageModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background: transparent; border: none;">
+          <div class="modal-body p-0 text-center position-relative">
+             <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-2 bg-dark rounded-circle p-2" data-bs-dismiss="modal" style="opacity:0.8;"></button>
+             <img src="" id="fullImage" class="img-fluid rounded shadow-lg" style="max-height: 90vh;">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="loginModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; border: none;">
+          <div class="modal-header text-white" style="background: var(--secondary-color); border-radius: 20px 20px 0 0;">
+            <h5 class="modal-title">เข้าสู่ระบบเจ้าหน้าที่</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <input type="text" id="adminUser" class="form-control rounded-pill mb-3" placeholder="Username">
+            <input type="password" id="adminPass" class="form-control rounded-pill mb-3" placeholder="Password">
+            <button type="button" class="btn btn-medical w-100" onclick="doLogin()">Login</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="actionModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 20px;">
+          <div class="modal-header bg-light">
+            <h5 class="modal-title text-primary"><i class="fas fa-tasks me-2"></i>จัดการ: <span id="modal-id" class="fw-bold"></span></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-2"><strong><i class="fas fa-hospital me-2 text-muted"></i></strong> <span id="modal-facility"></span></p>
+                    <p class="mb-2"><strong><i class="fas fa-user me-2 text-muted"></i></strong> <span id="modal-reporter"></span></p>
+                    <p class="mb-2"><strong><i class="fas fa-phone me-2 text-muted"></i></strong> <a href="#" id="modal-phone-link" class="text-decoration-none"><span id="modal-phone"></span></a></p>
+                    <p class="mb-3"><a href="#" id="modal-map" target="_blank" class="btn btn-sm btn-outline-info rounded-pill"><i class="fas fa-map-marked-alt me-1"></i> ดูแผนที่</a></p>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded-3 mb-3">
+                        <strong class="d-block mb-1">รายละเอียด:</strong>
+                        <span id="modal-detail"></span>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <h6 class="text-secondary small"><i class="fas fa-history me-1"></i> Timeline</h6>
+            <div id="modal-timeline" class="mb-3 p-3 border rounded bg-white" style="max-height: 150px; overflow-y: auto; font-size: 0.85rem;"></div>
+
+            <div id="action-input-area">
+                <label class="form-label small">บันทึก/การดำเนินการ:</label>
+                <textarea class="form-control mb-3" id="modal-note" rows="2" placeholder="ระบุการดำเนินการ..."></textarea>
+            </div>
+            
+            <div id="action-buttons-receive" class="d-none row g-2">
+               <div class="col-6"><button class="btn btn-success w-100 rounded-pill" onclick="confirmAction('รับเรื่องแล้ว')">รับเรื่อง</button></div>
+               <div class="col-6"><button class="btn btn-danger w-100 rounded-pill" onclick="confirmAction('ยกเลิก')">ยกเลิก</button></div>
+            </div>
+            <div id="action-buttons-work" class="d-none">
+               <button class="btn btn-success w-100 rounded-pill" onclick="confirmAction('เสร็จสิ้น')">งานเสร็จสิ้น</button>
+            </div>
+            <div id="action-buttons-view" class="d-none">
+               <button class="btn btn-secondary w-100 rounded-pill" data-bs-dismiss="modal">ปิด</button>
+            </div>
+            <input type="hidden" id="modal-rowIndex">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      var currentRole = ''; 
+      var allAdminData = [];
+      google.charts.load('current', {'packages':['corechart']});
+
+      // --- Install PWA ---
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('install-prompt').style.display = 'flex';
+      });
+
+      function installApp() {
+        document.getElementById('install-prompt').style.display = 'none';
+        if(deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => { deferredPrompt = null; });
+        }
+      }
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').then(() => console.log('SW Registered')).catch(err => console.log('SW Failed', err));
+      }
+
+      // --- API Calls ---
+      async function callAPI(action, payload = {}) {
+          document.getElementById('loading').style.display = 'flex';
+          payload.action = action;
+          try {
+              const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+              const data = await response.json();
+              document.getElementById('loading').style.display = 'none';
+              return data;
+          } catch (error) {
+              document.getElementById('loading').style.display = 'none';
+              alert('Connection Error');
+              return null;
+          }
+      }
+
+      // --- Navigation Functions ---
+      function showPage(pageId) {
+        document.getElementById('page-landing').classList.add('d-none');
+        document.getElementById('app-container').classList.remove('d-none');
+        if(pageId === 'page-report') {
+          currentRole = 'user';
+          document.querySelectorAll('.admin-only').forEach(el => el.classList.add('d-none'));
+          document.querySelectorAll('.user-only').forEach(el => el.classList.remove('d-none'));
+          showTab('tab-report');
+          loadUserData(); 
+        }
+      }
+      
+      // ปุ่มย้อนกลับ
+      function goBack() {
+         document.getElementById('app-container').classList.add('d-none');
+         document.getElementById('page-landing').classList.remove('d-none');
+      }
+
+      function showTab(tabId) {
+        document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('show', 'active'));
+        document.getElementById(tabId).classList.add('show', 'active');
+        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+        var links = document.querySelectorAll(`[onclick="showTab('${tabId}')"]`);
+        if(links.length > 0) links[0].classList.add('active');
+        
+        // ถ้าเป็น Admin และยังไม่โหลดข้อมูล ให้โหลดมาเลย
+        if(tabId.startsWith('tab-admin') && allAdminData.length === 0) loadAdminData();
+      }
+
+      function switchDash(targetId, btn) {
+          document.querySelectorAll('.dash-section').forEach(el => el.classList.add('d-none'));
+          document.getElementById(targetId).classList.remove('d-none');
+          var btns = btn.parentElement.querySelectorAll('.btn');
+          btns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+      }
+
+      function viewImage(src) {
+          document.getElementById('fullImage').src = src;
+          new bootstrap.Modal(document.getElementById('imageModal')).show();
+      }
+
+      function logout() { localStorage.removeItem('adminSession'); location.reload(); }
+
+      // --- User Functions ---
+      function loadUserData() {
+        if(localStorage.getItem('reporterName')) document.getElementById('reporterName').value = localStorage.getItem('reporterName');
+        if(localStorage.getItem('reporterPhone')) document.getElementById('reporterPhone').value = localStorage.getItem('reporterPhone');
+        
+        JSON.parse(localStorage.getItem('savedFacilities') || '[]').forEach(fac => {
+            let opt = document.createElement('option'); opt.value = fac; document.getElementById('facilityList').appendChild(opt);
+        });
+      }
+
+      function getGPS() {
+        if (navigator.geolocation) {
+          document.getElementById('loading').style.display = 'flex';
+          navigator.geolocation.getCurrentPosition(
+            (p) => {
+              var link = 'https://www.google.com/maps?q=$' + p.coords.latitude + ',' + p.coords.longitude;
+              document.getElementById('locationUrl').value = link;
+              document.getElementById('loading').style.display = 'none';
+            },
+            () => { alert("Error GPS"); document.getElementById('loading').style.display = 'none'; }
+          );
+        } else alert("No GPS");
+      }
+
+      async function submitForm(e) {
+        e.preventDefault();
+        var form = document.getElementById('form-report');
+        localStorage.setItem('reporterName', form.reporterName.value);
+        localStorage.setItem('reporterPhone', form.reporterPhone.value);
+        let saved = JSON.parse(localStorage.getItem('savedFacilities') || '[]');
+        if(!saved.includes(form.facilityName.value)) { saved.push(form.facilityName.value); localStorage.setItem('savedFacilities', JSON.stringify(saved)); }
+
+        const res = await callAPI('submitReport', {
+          facilityName: form.facilityName.value,
+          locationUrl: form.locationUrl.value,
+          reportDetails: form.reportDetails.value,
+          reporterName: form.reporterName.value,
+          phone: form.reporterPhone.value
+        });
+        if(res && res.status === 'success') { alert("สำเร็จ รหัส: " + res.id); form.reset(); }
+      }
+
+      async function doSearch() {
+        var k = document.getElementById('searchKeyword').value;
+        if(!k) return;
+        const res = await callAPI('searchReport', { keyword: k });
+        var html = '';
+        if(!res || res.length === 0) html = '<div class="alert alert-light text-center w-100 small">ไม่พบข้อมูล</div>';
+        else {
+              res.forEach(r => {
+                let badge = r.status==='รายงานแล้ว'?'warning':r.status==='รับเรื่องแล้ว'?'info':'success';
+                let txt = r.status==='รายงานแล้ว'?'text-dark':'text-white';
+                html += `<div class="card custom-card p-3 mb-2"><div class="d-flex justify-content-between mb-1"><span class="fw-bold text-primary">${r.id}</span><span class="badge bg-${badge} ${txt} rounded-pill">${r.status}</span></div><div class="small text-muted">${r.timestamp}</div><div class="small">${r.facility}</div></div>`;
+              });
+        }
+        document.getElementById('search-results').innerHTML = html;
+      }
+
+      // --- Admin Functions ---
+      function checkAuthAndShow() {
+        if (localStorage.getItem('adminSession')) enterAdminMode();
+        else new bootstrap.Modal(document.getElementById('loginModal')).show();
+      }
+
+      async function doLogin() {
+        const res = await callAPI('loginUser', { username: document.getElementById('adminUser').value, password: document.getElementById('adminPass').value });
+        if(res && res.status === 'success') {
+          localStorage.setItem('adminSession', res.name);
+          document.querySelector('#loginModal .btn-close').click();
+          enterAdminMode();
+        } else alert("รหัสผ่านผิด");
+      }
+
+      function enterAdminMode() {
+        document.getElementById('page-landing').classList.add('d-none');
+        document.getElementById('app-container').classList.remove('d-none');
+        currentRole = 'admin';
+        document.querySelectorAll('.user-only').forEach(el => el.classList.add('d-none'));
+        document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('d-none'));
+        showTab('tab-admin-receive');
+      }
+
+      async function loadAdminData() {
+         const data = await callAPI('getAdminData');
+         if(data) { allAdminData = data; renderAdminCards(); renderDashboard(); }
+      }
+
+      function renderAdminCards() {
+         var rxHtml = '', wkHtml = '', finHtml = '';
+         var today = new Date();
+         allAdminData.forEach(item => {
+            var reportedDate = new Date(item.timestamp);
+            if(isNaN(reportedDate)) reportedDate = new Date();
+            var diffTime = today.getTime() - reportedDate.getTime();
+            var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            var isAlert = (diffDays > 14); 
+            var cardClass = (isAlert && item.status !== 'เสร็จสิ้น') ? 'card-red-alert' : '';
+            
+            var card = `
+              <div class="col-md-6 col-lg-4">
+                <div class="card custom-card p-3 ${cardClass}" onclick="openActionModal(${item.rowIndex})">
+                    <div class="d-flex justify-content-between mb-2"><span class="fw-bold text-primary">${item.id}</span><small class="text-muted">${item.timestamp.split(' ')[0]}</small></div>
+                    <h6 class="mb-1 text-dark">${item.facility}</h6>
+                    <p class="text-secondary small text-truncate mb-2">${item.details}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <div class="small text-muted"><i class="fas fa-user-circle"></i> ${item.reporter} <br><i class="fas fa-phone-alt"></i> ${item.phone}</div>
+                        ${(isAlert && item.status !== 'เสร็จสิ้น') ? '<span class="badge bg-danger rounded-pill small">ล่าช้า 14+ วัน</span>' : ''}
+                    </div>
+                </div>
+              </div>`;
+            if(item.status === 'รายงานแล้ว') rxHtml += card;
+            else if (item.status === 'รับเรื่องแล้ว') wkHtml += card;
+            else if (item.status === 'เสร็จสิ้น') finHtml += card;
+         });
+         document.getElementById('admin-receive-list').innerHTML = rxHtml || '<div class="col-12 text-center text-muted small">ไม่มีข้อมูล</div>';
+         document.getElementById('admin-work-list').innerHTML = wkHtml || '<div class="col-12 text-center text-muted small">ไม่มีข้อมูล</div>';
+         document.getElementById('admin-finish-list').innerHTML = finHtml || '<div class="col-12 text-center text-muted small">ไม่มีข้อมูล</div>';
+      }
+
+      function openActionModal(rowIndex) {
+         var item = allAdminData.find(d => d.rowIndex === rowIndex);
+         if(!item) return;
+         document.getElementById('modal-id').innerText = item.id;
+         document.getElementById('modal-facility').innerText = item.facility;
+         document.getElementById('modal-detail').innerText = item.details;
+         document.getElementById('modal-reporter').innerText = item.reporter;
+         document.getElementById('modal-phone').innerText = item.phone || '-';
+         document.getElementById('modal-phone-link').href = item.phone ? 'tel:'+item.phone : '#';
+
+         document.getElementById('modal-map').href = item.location;
+         document.getElementById('modal-rowIndex').value = item.rowIndex;
+         
+         var noteText = item.adminNote ? item.adminNote.replace(/\n/g, '<br>') : '<span class="text-muted small">ยังไม่มีบันทึก</span>';
+         document.getElementById('modal-timeline').innerHTML = noteText;
+         document.getElementById('modal-note').value = '';
+
+         var btnRx = document.getElementById('action-buttons-receive');
+         var btnWk = document.getElementById('action-buttons-work');
+         var btnView = document.getElementById('action-buttons-view');
+         var inputArea = document.getElementById('action-input-area');
+         
+         btnRx.classList.add('d-none'); btnWk.classList.add('d-none'); btnView.classList.add('d-none');
+         inputArea.classList.remove('d-none');
+
+         if(item.status === 'รายงานแล้ว') btnRx.classList.remove('d-none');
+         else if (item.status === 'รับเรื่องแล้ว') btnWk.classList.remove('d-none');
+         else if (item.status === 'เสร็จสิ้น' || item.status === 'ยกเลิก') {
+            btnView.classList.remove('d-none');
+            inputArea.classList.add('d-none');
+         }
+         new bootstrap.Modal(document.getElementById('actionModal')).show();
+      }
+
+      async function confirmAction(newStatus) {
+         var rowIndex = document.getElementById('modal-rowIndex').value;
+         var note = document.getElementById('modal-note').value;
+         var adminName = localStorage.getItem('adminSession') || 'Admin';
+         if(confirm('ยืนยันเปลี่ยนสถานะ?')) {
+             const res = await callAPI('updateReportStatus', { rowIndex, newStatus, adminNote: note, adminName });
+             if(res && res.status === 'success') {
+                 document.querySelector('#actionModal .btn-close').click();
+                 loadAdminData(); 
+             }
+         }
+      }
+
+      function renderDashboard() {
+         var statusCount = {}, facilityCount = {};
+         allAdminData.forEach(d => { statusCount[d.status] = (statusCount[d.status]||0)+1; facilityCount[d.facility] = (facilityCount[d.facility]||0)+1; });
+         var pieData = [['Status', 'Count']];
+         for(var s in statusCount) pieData.push([s, statusCount[s]]);
+         new google.visualization.ChartWrapper({ chartType: 'PieChart', dataTable: pieData, options: { 'title': 'สถานะ', 'colors': ['#ffc107', '#17a2b8', '#28a745', '#dc3545'], chartArea:{width:'100%',height:'80%'} }, containerId: 'chart_status' }).draw();
+         var sortedFac = Object.keys(facilityCount).map(k => [k, facilityCount[k]]).sort((a,b)=>b[1]-a[1]).slice(0,5);
+         var barData = [['Facility', 'Count', {role:'style'}]];
+         sortedFac.forEach(f => barData.push([f[0], f[1], 'color: #00B4DB']));
+         new google.visualization.ChartWrapper({ chartType: 'BarChart', dataTable: barData, options: { 'title': 'Top 5', legend:{position:"none"} }, containerId: 'chart_top5' }).draw();
+      }
+
+      // --- MAP FUNCTION (Auto Zoom + Bigger Pins) ---
+      var mapInstance;
+      function initMap() {
+          setTimeout(() => {
+              if (mapInstance) { mapInstance.remove(); }
+              mapInstance = L.map('map'); // สร้างแผนที่เปล่าๆ ก่อน
+
+              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(mapInstance);
+
+              // สร้าง Group เพื่อเก็บหมุดทั้งหมด (สำหรับ Auto Zoom)
+              var markerGroup = L.featureGroup();
+
+              allAdminData.forEach(item => {
+                  try {
+                      var parts = item.location.split('https://www.google.com/maps?q=$');
+                      if(parts.length > 1) {
+                          var latlng = parts[1].split(',');
+                          var lat = parseFloat(latlng[0]);
+                          var lng = parseFloat(latlng[1]);
+                          if(!isNaN(lat) && !isNaN(lng)) {
+                              var color = item.status === 'รายงานแล้ว' ? 'red' : (item.status === 'เสร็จสิ้น' ? 'green' : 'orange');
+                              
+                              // สร้างหมุด (CircleMarker) ที่ใหญ่ขึ้นและมีขอบสีขาว
+                              var marker = L.circleMarker([lat, lng], {
+                                  color: 'white',       // ขอบสีขาว
+                                  weight: 2,            // ความหนาขอบ
+                                  fillColor: color,     // สีตามสถานะ
+                                  fillOpacity: 0.8,
+                                  radius: 10            // ขนาดใหญ่ขึ้น (เดิม 8)
+                              }).bindPopup(`<b>${item.facility}</b><br>${item.status}<br><small>${item.details}</small>`);
+
+                              markerGroup.addLayer(marker); // ใส่หมุดเข้ากลุ่ม
+                          }
+                      }
+                  } catch(e) { console.log('Map Error:', e); }
+              });
+
+              mapInstance.addLayer(markerGroup);
+
+              // *** Logic Auto Zoom: ถ้ามีหมุด ให้ซูมไปหาหมุด ***
+              if (markerGroup.getLayers().length > 0) {
+                  mapInstance.fitBounds(markerGroup.getBounds(), { padding: [50, 50] });
+              } else {
+                  // ถ้าไม่มีหมุดเลย ให้ไปที่ สะเดา (Default)
+                  mapInstance.setView([6.6373, 100.4231], 10);
+              }
+
+          }, 300);
+      }
+
+      // --- REPORT FUNCTION ---
+      function generateReport() {
+          var start = document.getElementById('filterStart').value;
+          var end = document.getElementById('filterEnd').value;
+          var status = document.getElementById('filterStatus').value;
+          
+          var tbody = document.getElementById('reportBody');
+          tbody.innerHTML = '';
+          document.getElementById('printDate').innerText = new Date().toLocaleDateString('th-TH');
+
+          var filtered = allAdminData.filter(item => {
+              var d = new Date(item.timestamp);
+              var sDate = start ? new Date(start) : new Date('2000-01-01');
+              var eDate = end ? new Date(end) : new Date();
+              eDate.setHours(23,59,59);
+              var dateMatch = d >= sDate && d <= eDate;
+              var statusMatch = status === 'All' || item.status === status;
+              return dateMatch && statusMatch;
+          });
+
+          if(filtered.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="6" class="text-center p-3">ไม่พบข้อมูลตามเงื่อนไข</td></tr>';
+              return;
+          }
+
+          filtered.forEach(item => {
+              var detailShort = item.details.length > 80 ? item.details.substring(0,80)+'...' : item.details;
+              var adminName = '-';
+              if(item.adminNote && item.adminNote.includes('โดย')) {
+                  try { adminName = item.adminNote.split('โดย ')[1].split('):')[0]; } catch(e){}
+              }
+              var tr = `<tr><td class="text-center fw-bold">${item.id}</td><td>${new Date(item.timestamp).toLocaleDateString('th-TH')}</td><td>${item.facility}</td><td class="text-start small">${detailShort}</td><td class="text-center">${item.status}</td><td class="text-center small">${adminName}</td></tr>`;
+              tbody.innerHTML += tr;
+          });
+      }
+    </script>
+</body>
+</html>
