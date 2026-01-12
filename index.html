@@ -14,6 +14,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
     <style>
@@ -69,7 +73,7 @@
       .card-header-custom { padding: 15px 20px; border-bottom: 1px solid #f1f1f1; font-weight: 600; color: var(--secondary-color); }
       .card-red-alert { border-left: 5px solid #ff7675; background-color: #fff0f0; }
 
-      /* --- Carousel Style (ปรับปรุงใหม่) --- */
+      /* Carousel Style */
       .carousel-container {
           width: 100%;
           max-width: 600px;
@@ -78,22 +82,21 @@
           box-shadow: 0 8px 20px rgba(0,0,0,0.1);
           margin-bottom: 25px;
           margin-top: 20px;
-          background-color: #fff; /* พื้นหลังขาว */
+          background-color: #fff;
           border: 4px solid white;
           position: relative;
       }
       .carousel-item {
-          height: 220px; /* กำหนดความสูงคงที่ ไม่กินพื้นที่ */
+          height: 220px;
           background-color: #f8f9fa;
-          cursor: pointer; /* เมาส์เป็นรูปมือ */
+          cursor: pointer;
           position: relative;
       }
       .carousel-item img {
           width: 100%;
           height: 100%;
-          object-fit: contain; /* แสดงภาพครบถ้วน */
+          object-fit: contain;
       }
-      /* ไอคอนแว่นขยายที่มุมขวาบนของสไลด์ */
       .zoom-hint {
           position: absolute;
           top: 10px;
@@ -107,7 +110,7 @@
       }
 
       /* Navigation Pills */
-      .nav-pills .nav-link { color: #636e72; border-radius: 50px; padding: 8px 15px; margin: 0 2px; font-size: 0.9rem; font-weight: 500; white-space: nowrap; }
+      .nav-pills .nav-link { color: #636e72; border-radius: 50px; padding: 8px 15px; margin: 0 2px; font-size: 0.9rem; font-weight: 500; white-space: nowrap; cursor: pointer;}
       .nav-pills .nav-link.active { background-color: var(--primary-color); color: white; box-shadow: 0 4px 10px rgba(0, 180, 219, 0.3); }
       .nav-scroll-container { overflow-x: auto; white-space: nowrap; padding-bottom: 5px; -webkit-overflow-scrolling: touch; }
       .nav-scroll-container::-webkit-scrollbar { display: none; }
@@ -123,12 +126,29 @@
       
       /* Install Prompt */
       #install-prompt { display: none; position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: white; padding: 10px 20px; border-radius: 50px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 2000; width: 90%; max-width: 400px; align-items: center; justify-content: space-between; }
+
+      /* --- CSS สำหรับ Print Report --- */
+      @media print {
+        body * { visibility: hidden; }
+        #tab-admin-report, #tab-admin-report * { visibility: visible; }
+        #tab-admin-report { 
+            position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; background-color: white; 
+        }
+        .d-print-none, .navbar, .footer, .btn, .card-header-custom, .nav-scroll-container { display: none !important; }
+        .custom-card { box-shadow: none !important; border: none !important; margin: 0 !important; }
+        
+        /* จัดตารางให้สวยงามเวลาลงกระดาษ */
+        .report-header { margin-bottom: 20px; }
+        .report-table th { background-color: #f0f0f0 !important; color: black !important; -webkit-print-color-adjust: exact; }
+        .report-table th, .report-table td { font-size: 10pt; padding: 5px; border: 1px solid #000 !important; vertical-align: middle; }
+        .report-footer { display: flex !important; margin-top: 50px; page-break-inside: avoid; }
+      }
     </style>
 </head>
 <body>
 
     <script>
-        // *** ใส่ URL Web App ของคุณที่นี่ ***
+        // *** ตรวจสอบ URL Web App ให้ถูกต้อง ***
         const API_URL = "https://script.google.com/macros/s/AKfycbwau8nMoqNlLba_TVaYYM9BdmZcmeeC0_i3xOfd2GqiOx2CXvAm4e6_6Ngioxutdv9_/exec"; 
     </script>
 
@@ -230,6 +250,8 @@
               <li class="nav-item admin-only d-none"><a class="nav-link" onclick="showTab('tab-admin-work')">ติดตาม</a></li>
               <li class="nav-item admin-only d-none"><a class="nav-link" onclick="showTab('tab-admin-finish')">เสร็จสิ้น</a></li>
               <li class="nav-item admin-only d-none"><a class="nav-link" onclick="showTab('tab-admin-dash')">สรุปผล</a></li>
+              <li class="nav-item admin-only d-none"><a class="nav-link" onclick="showTab('tab-admin-map'); initMap();">แผนที่</a></li>
+              <li class="nav-item admin-only d-none"><a class="nav-link" onclick="showTab('tab-admin-report')">ออกรายงาน</a></li>
            </ul>
         </div>
 
@@ -307,6 +329,77 @@
                <div class="col-md-6 mb-3"><div class="card custom-card p-3"><div id="chart_top5" style="width:100%; height:300px;"></div></div></div>
              </div>
           </div>
+
+          <div id="tab-admin-map" class="tab-pane fade">
+             <div class="card custom-card p-3">
+                 <h5 class="card-header-custom"><i class="fas fa-map-marked-alt me-2"></i>พิกัดเรื่องร้องเรียน</h5>
+                 <div id="map" style="height: 500px; width: 100%; border-radius: 15px; z-index: 1;"></div>
+             </div>
+          </div>
+
+          <div id="tab-admin-report" class="tab-pane fade">
+             <div class="card custom-card p-4">
+                 
+                 <div class="row g-2 mb-4 d-print-none bg-light p-3 rounded-3">
+                     <div class="col-md-3">
+                         <label class="small text-muted">ตั้งแต่วันที่</label>
+                         <input type="date" id="filterStart" class="form-control rounded-pill form-control-sm">
+                     </div>
+                     <div class="col-md-3">
+                         <label class="small text-muted">ถึงวันที่</label>
+                         <input type="date" id="filterEnd" class="form-control rounded-pill form-control-sm">
+                     </div>
+                     <div class="col-md-3">
+                         <label class="small text-muted">สถานะ</label>
+                         <select id="filterStatus" class="form-select rounded-pill form-select-sm">
+                             <option value="All">ทั้งหมด</option>
+                             <option value="รายงานแล้ว">รายงานแล้ว</option>
+                             <option value="รับเรื่องแล้ว">รับเรื่องแล้ว</option>
+                             <option value="เสร็จสิ้น">เสร็จสิ้น</option>
+                         </select>
+                     </div>
+                     <div class="col-md-3 d-flex align-items-end">
+                         <button class="btn btn-primary w-100 rounded-pill btn-sm me-1" onclick="generateReport()">กรอง</button>
+                         <button class="btn btn-dark w-100 rounded-pill btn-sm" onclick="window.print()">พิมพ์</button>
+                     </div>
+                 </div>
+
+                 <div id="report-area">
+                     <div class="text-center mb-4 report-header">
+                         <img src="https://img5.pic.in.th/file/secure-sv1/messageImage_1767330415287.jpg" style="height: 70px;" class="mb-2">
+                         <h5 class="fw-bold">รายงานสรุปการเฝ้าระวังและคุ้มครองผู้บริโภค</h5>
+                         <h6 class="text-muted">กลุ่มงานการแพทย์แผนไทยและการแพทย์ทางเลือก โรงพยาบาลสะเดา</h6>
+                         <p class="small">ข้อมูล ณ วันที่: <span id="printDate"></span></p>
+                     </div>
+
+                     <table class="table table-bordered border-dark report-table w-100">
+                         <thead class="table-light text-center">
+                             <tr>
+                                 <th width="10%">ID</th>
+                                 <th width="15%">วันที่</th>
+                                 <th width="20%">สถานที่</th>
+                                 <th width="35%">รายละเอียด</th>
+                                 <th width="10%">สถานะ</th>
+                                 <th width="10%">ผู้รับผิดชอบ</th>
+                             </tr>
+                         </thead>
+                         <tbody id="reportBody">
+                             </tbody>
+                     </table>
+
+                     <div class="row mt-5 report-footer" style="display:none;">
+                         <div class="col-6 text-center">
+                             <br>............................................<br>ผู้จัดทำรายงาน
+                         </div>
+                         <div class="col-6 text-center">
+                             <br>............................................<br>หัวหน้ากลุ่มงานฯ
+                         </div>
+                     </div>
+                 </div>
+
+             </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -451,10 +544,10 @@
         var links = document.querySelectorAll(`[onclick="showTab('${tabId}')"]`);
         if(links.length > 0) links[0].classList.add('active');
         
-        if(tabId.startsWith('tab-admin')) loadAdminData();
+        // ถ้าเป็น Tab แอดมินและไม่เคยโหลดข้อมูล ให้โหลดใหม่ (แต่ถ้าเป็น Tab Map/Report ไม่ต้องโหลดซ้ำถ้ามีข้อมูลแล้ว)
+        if(tabId.startsWith('tab-admin') && allAdminData.length === 0) loadAdminData();
       }
 
-      // ฟังก์ชันดูรูปขนาดเต็ม
       function viewImage(src) {
           document.getElementById('fullImage').src = src;
           new bootstrap.Modal(document.getElementById('imageModal')).show();
@@ -467,7 +560,7 @@
         if(localStorage.getItem('reporterPhone')) document.getElementById('reporterPhone').value = localStorage.getItem('reporterPhone');
         
         JSON.parse(localStorage.getItem('savedFacilities') || '[]').forEach(fac => {
-           let opt = document.createElement('option'); opt.value = fac; document.getElementById('facilityList').appendChild(opt);
+            let opt = document.createElement('option'); opt.value = fac; document.getElementById('facilityList').appendChild(opt);
         });
       }
 
@@ -476,7 +569,8 @@
           document.getElementById('loading').style.display = 'flex';
           navigator.geolocation.getCurrentPosition(
             (p) => {
-              var link = `https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`;
+              // *** รูปแบบ Link ที่ตรงกับ Code ***
+              var link = 'https://www.google.com/maps?q=$' + p.coords.latitude + ',' + p.coords.longitude;
               document.getElementById('locationUrl').value = link;
               document.getElementById('loading').style.display = 'none';
             },
@@ -512,11 +606,11 @@
         var html = '';
         if(!res || res.length === 0) html = '<div class="alert alert-light text-center w-100 small">ไม่พบข้อมูล</div>';
         else {
-             res.forEach(r => {
+              res.forEach(r => {
                 let badge = r.status==='รายงานแล้ว'?'warning':r.status==='รับเรื่องแล้ว'?'info':'success';
                 let txt = r.status==='รายงานแล้ว'?'text-dark':'text-white';
                 html += `<div class="card custom-card p-3 mb-2"><div class="d-flex justify-content-between mb-1"><span class="fw-bold text-primary">${r.id}</span><span class="badge bg-${badge} ${txt} rounded-pill">${r.status}</span></div><div class="small text-muted">${r.timestamp}</div><div class="small">${r.facility}</div></div>`;
-             });
+              });
         }
         document.getElementById('search-results').innerHTML = html;
       }
@@ -638,6 +732,90 @@
          var barData = [['Facility', 'Count', {role:'style'}]];
          sortedFac.forEach(f => barData.push([f[0], f[1], 'color: #00B4DB']));
          new google.visualization.ChartWrapper({ chartType: 'BarChart', dataTable: barData, options: { 'title': 'Top 5', legend:{position:"none"} }, containerId: 'chart_top5' }).draw();
+      }
+
+      // --- MAP FUNCTION ---
+      var mapInstance;
+      function initMap() {
+          setTimeout(() => {
+              if (mapInstance) { mapInstance.remove(); }
+              
+              // พิกัดเริ่มต้น (อ.สะเดา จ.สงขลา)
+              mapInstance = L.map('map').setView([6.6373, 100.4231], 10);
+
+              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                  attribution: '© OpenStreetMap'
+              }).addTo(mapInstance);
+
+              allAdminData.forEach(item => {
+                  try {
+                      // Logic ดึงพิกัดตาม Format ที่คุณเก็บไว้
+                      // รูปแบบ URL: https://www.google.com/maps?q=${lat},{long}
+                      var parts = item.location.split('maps.google.com/0');
+                      if(parts.length > 1) {
+                          var latlng = parts[1].split(',');
+                          var lat = parseFloat(latlng[0]);
+                          var lng = parseFloat(latlng[1]);
+
+                          if(!isNaN(lat) && !isNaN(lng)) {
+                              var color = item.status === 'รายงานแล้ว' ? 'red' : (item.status === 'เสร็จสิ้น' ? 'green' : 'orange');
+                              L.circleMarker([lat, lng], {
+                                  color: color, fillColor: color, fillOpacity: 0.7, radius: 8
+                              }).addTo(mapInstance)
+                              .bindPopup(`<b>${item.facility}</b><br>${item.status}<br><small>${item.details}</small>`);
+                          }
+                      }
+                  } catch(e) { console.log('Map Error:', e); }
+              });
+          }, 300);
+      }
+
+      // --- REPORT FUNCTION ---
+      function generateReport() {
+          var start = document.getElementById('filterStart').value;
+          var end = document.getElementById('filterEnd').value;
+          var status = document.getElementById('filterStatus').value;
+          
+          var tbody = document.getElementById('reportBody');
+          tbody.innerHTML = '';
+          
+          document.getElementById('printDate').innerText = new Date().toLocaleDateString('th-TH');
+
+          var filtered = allAdminData.filter(item => {
+              var d = new Date(item.timestamp);
+              var sDate = start ? new Date(start) : new Date('2000-01-01');
+              var eDate = end ? new Date(end) : new Date();
+              eDate.setHours(23,59,59);
+
+              var dateMatch = d >= sDate && d <= eDate;
+              var statusMatch = status === 'All' || item.status === status;
+              return dateMatch && statusMatch;
+          });
+
+          if(filtered.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="6" class="text-center p-3">ไม่พบข้อมูลตามเงื่อนไข</td></tr>';
+              return;
+          }
+
+          filtered.forEach(item => {
+              var detailShort = item.details.length > 80 ? item.details.substring(0,80)+'...' : item.details;
+              var adminName = '-';
+              if(item.adminNote && item.adminNote.includes('โดย')) {
+                  try { adminName = item.adminNote.split('โดย ')[1].split('):')[0]; } catch(e){}
+              }
+
+              var tr = `
+                  <tr>
+                      <td class="text-center fw-bold">${item.id}</td>
+                      <td>${new Date(item.timestamp).toLocaleDateString('th-TH')}</td>
+                      <td>${item.facility}</td>
+                      <td class="text-start small">${detailShort}</td>
+                      <td class="text-center">${item.status}</td>
+                      <td class="text-center small">${adminName}</td>
+                  </tr>
+              `;
+              tbody.innerHTML += tr;
+          });
       }
     </script>
 </body>
