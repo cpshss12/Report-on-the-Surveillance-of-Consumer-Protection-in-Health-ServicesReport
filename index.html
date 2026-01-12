@@ -781,7 +781,7 @@
                                   weight: 2,            // ความหนาขอบ
                                   fillColor: color,     // สีตามสถานะ
                                   fillOpacity: 0.8,
-                                  radius: 10            // ขนาดใหญ่ขึ้น (เดิม 8)
+                                  radius: 10            // ขนาดใหญ่ขึ้น
                               }).bindPopup(`<b>${item.facility}</b><br>${item.status}<br><small>${item.details}</small>`);
 
                               markerGroup.addLayer(marker); // ใส่หมุดเข้ากลุ่ม
@@ -792,11 +792,10 @@
 
               mapInstance.addLayer(markerGroup);
 
-              // *** Logic Auto Zoom: ถ้ามีหมุด ให้ซูมไปหาหมุด ***
+              // Logic Auto Zoom: ถ้ามีหมุด ให้ซูมไปหาหมุด
               if (markerGroup.getLayers().length > 0) {
                   mapInstance.fitBounds(markerGroup.getBounds(), { padding: [50, 50] });
               } else {
-                  // ถ้าไม่มีหมุดเลย ให้ไปที่ สะเดา (Default)
                   mapInstance.setView([6.6373, 100.4231], 10);
               }
 
