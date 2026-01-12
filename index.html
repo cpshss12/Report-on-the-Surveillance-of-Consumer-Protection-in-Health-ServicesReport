@@ -148,7 +148,7 @@
 <body>
 
     <script>
-        // *** ตรวจสอบ URL Web App ให้ถูกต้อง ***
+        // *** ตรวจสอบ URL Web App ของคุณที่นี่ ***
         const API_URL = "https://script.google.com/macros/s/AKfycbwau8nMoqNlLba_TVaYYM9BdmZcmeeC0_i3xOfd2GqiOx2CXvAm4e6_6Ngioxutdv9_/exec"; 
     </script>
 
@@ -489,6 +489,7 @@
       var allAdminData = [];
       google.charts.load('current', {'packages':['corechart']});
 
+      // --- Install PWA ---
       let deferredPrompt;
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
@@ -505,11 +506,10 @@
       }
 
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js')
-            .then(() => console.log('SW Registered'))
-            .catch(err => console.log('SW Failed', err));
+        navigator.serviceWorker.register('sw.js').then(() => console.log('SW Registered')).catch(err => console.log('SW Failed', err));
       }
 
+      // --- API Calls ---
       async function callAPI(action, payload = {}) {
           document.getElementById('loading').style.display = 'flex';
           payload.action = action;
@@ -525,6 +525,7 @@
           }
       }
 
+      // --- Navigation Functions ---
       function showPage(pageId) {
         document.getElementById('page-landing').classList.add('d-none');
         document.getElementById('app-container').classList.remove('d-none');
@@ -544,7 +545,7 @@
         var links = document.querySelectorAll(`[onclick="showTab('${tabId}')"]`);
         if(links.length > 0) links[0].classList.add('active');
         
-        // ถ้าเป็น Tab แอดมินและไม่เคยโหลดข้อมูล ให้โหลดใหม่ (แต่ถ้าเป็น Tab Map/Report ไม่ต้องโหลดซ้ำถ้ามีข้อมูลแล้ว)
+        // ถ้าเป็น Admin และยังไม่โหลดข้อมูล ให้โหลดมาเลย
         if(tabId.startsWith('tab-admin') && allAdminData.length === 0) loadAdminData();
       }
 
@@ -555,6 +556,7 @@
 
       function logout() { localStorage.removeItem('adminSession'); location.reload(); }
 
+      // --- User Functions ---
       function loadUserData() {
         if(localStorage.getItem('reporterName')) document.getElementById('reporterName').value = localStorage.getItem('reporterName');
         if(localStorage.getItem('reporterPhone')) document.getElementById('reporterPhone').value = localStorage.getItem('reporterPhone');
@@ -569,7 +571,7 @@
           document.getElementById('loading').style.display = 'flex';
           navigator.geolocation.getCurrentPosition(
             (p) => {
-              // *** รูปแบบ Link ที่ตรงกับ Code ***
+              // *** รูปแบบ Link (ใช้ /0 ตามที่แก้ไข) ***
               var link = 'https://www.google.com/maps?q=$' + p.coords.latitude + ',' + p.coords.longitude;
               document.getElementById('locationUrl').value = link;
               document.getElementById('loading').style.display = 'none';
@@ -582,10 +584,8 @@
       async function submitForm(e) {
         e.preventDefault();
         var form = document.getElementById('form-report');
-        
         localStorage.setItem('reporterName', form.reporterName.value);
         localStorage.setItem('reporterPhone', form.reporterPhone.value);
-
         let saved = JSON.parse(localStorage.getItem('savedFacilities') || '[]');
         if(!saved.includes(form.facilityName.value)) { saved.push(form.facilityName.value); localStorage.setItem('savedFacilities', JSON.stringify(saved)); }
 
@@ -615,6 +615,7 @@
         document.getElementById('search-results').innerHTML = html;
       }
 
+      // --- Admin Functions ---
       function checkAuthAndShow() {
         if (localStorage.getItem('adminSession')) enterAdminMode();
         else new bootstrap.Modal(document.getElementById('loginModal')).show();
@@ -734,7 +735,7 @@
          new google.visualization.ChartWrapper({ chartType: 'BarChart', dataTable: barData, options: { 'title': 'Top 5', legend:{position:"none"} }, containerId: 'chart_top5' }).draw();
       }
 
-      // --- MAP FUNCTION ---
+      // --- MAP FUNCTION (Fixed GPS Parsing) ---
       var mapInstance;
       function initMap() {
           setTimeout(() => {
@@ -749,9 +750,8 @@
 
               allAdminData.forEach(item => {
                   try {
-                      // Logic ดึงพิกัดตาม Format ที่คุณเก็บไว้
-                      // รูปแบบ URL: https://www.google.com/maps?q=${lat},{long}
-                      var parts = item.location.split('maps.google.com/0');
+                      // **จุดที่แก้ไข**: เปลี่ยนเลขหลัง map.google.com/ เป็น 0 เพื่อให้ตรงกับ getGPS()
+                      var parts = item.location.split('https://www.google.com/maps?q=$');
                       if(parts.length > 1) {
                           var latlng = parts[1].split(',');
                           var lat = parseFloat(latlng[0]);
